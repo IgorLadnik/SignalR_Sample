@@ -8,7 +8,8 @@ namespace SignalRClientTest
 {
     class ProgramSignalRClient
     {
-        private const string URL = "https://localhost:15001/hub/the1st"; //"http://localhost:5000/hub/the1st";
+        private const string URL = "https://localhost:15001/hub/the1st"; 
+                                   //"http://localhost:15000/hub/the1st";
 
         private static HubClient _hubClient;
         private static AutoResetEvent _ev = new AutoResetEvent(false);
