@@ -1,0 +1,2 @@
+cd SignalRClientTest
+dotnet run

@@ -1,0 +1,2 @@
+cd SignalRSvc
+dotnet run
