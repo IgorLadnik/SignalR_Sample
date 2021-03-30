@@ -81,7 +81,7 @@ namespace SignalRClientTest
                 },
             });
 
-            var result = (RetOuter) await task;
+            var result = (RetOuter[]) await task;
 
             // Client subscribes for stream of Dto objects providing appropriate handler
             if (!await _hubClient.SubscribeAsync<Dto>(arg => Console.WriteLine(arg)))

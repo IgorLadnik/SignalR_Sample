@@ -9,11 +9,11 @@ namespace RemoteImplementations
         //private ILogger _logger;
         //public ILoggerFactory LoggerFactory { set => _logger = value?.CreateLogger<RemoteCall2>(); }
 
-        public RetOuter Foo(string name, Arg1[] arg1s)
+        public RetOuter[] Foo(string name, Arg1[] arg1s)
         {
             //_logger?.LogInformation("*** RemoteCall1.Foo()");
-            return 
-                
+            return new RetOuter[] 
+                {
                     new RetOuter 
                     {
                         inners = new RetInner[] 
@@ -21,7 +21,7 @@ namespace RemoteImplementations
                             new() { id = "0_00" }, new() { id = "0_01" },
                             new() { id = "0_10" }, new() { id = "0_11" }
                         }
-                    }/*,
+                    },
                     new RetOuter
                     {
                         inners = new RetInner[]
@@ -29,8 +29,8 @@ namespace RemoteImplementations
                             new() { id = "1_00" }, new() { id = "1_01" },
                             new() { id = "1_10" }, new() { id = "1_11" }
                         }
-                    }*/
-                ;
+                    }
+                };
         }
 
         public string Echo(string text) => $"Echo1: {text}";

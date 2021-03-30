@@ -50,7 +50,15 @@ namespace SignalRBaseHubClientLib
             var typFullName = jt.First().Values<string>().First();
             var result = jt.Last().Values<object>().First();
 
-            return JsonSerializer.Deserialize($"{(JObject)result}", _dctType[typFullName], new() { PropertyNameCaseInsensitive = true });
+            JArray jArr = (JArray)result;
+            if (jArr != null)
+                return JsonSerializer.Deserialize($"{jArr}", _dctType[typFullName], new() { PropertyNameCaseInsensitive = true });
+
+            JObject jOb = (JObject)result;
+            if (jOb != null)
+                return JsonSerializer.Deserialize($"{jOb}", _dctType[typFullName], new() { PropertyNameCaseInsensitive = true });
+
+            return null;
         }
 
         #endregion // Type manipulations
