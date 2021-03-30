@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.SignalR;
 using SignalRBaseHubServerLib;
 using ModelLib;
 using DtoProviderLib;
+using RemoteInterfaces;
+using RemoteImplementations;
 
 namespace SignalRSvc.Hubs
 {
@@ -14,11 +16,16 @@ namespace SignalRSvc.Hubs
     // The base class takes event provider as a ctor parameter. 
     public class TheFirstHub : StreamingHub<Dto>
     {
+        static TheFirstHub() 
+        {
+            RegisterPerCall<IRemoteCall1, RemoteCall1>();
+        }
+
         public TheFirstHub() : base(DtoEventProvider.Instance)
         {
         }
 
-        public async Task ProcessDto(Dto[] args)
+        public async Task<Dto[]> ProcessDto(Dto[] args)
         {
             StringBuilder sbClients = new();
             StringBuilder sbData = new();
@@ -40,6 +47,8 @@ namespace SignalRSvc.Hubs
             }
 
             await Clients.All.SendAsync("ReceiveMessage", sbClients.ToString(), sbData.ToString());
+
+            return args;
         }
     }
 }

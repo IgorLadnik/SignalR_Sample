@@ -4,7 +4,7 @@ namespace SignalRBaseHubServerLib
 {
     public class StreamingDataProvider<T> : IStreamingDataProvider<T>
     {
-        private List<ISetEvent> _lstSetEvent = new List<ISetEvent>();
+        private List<ISetEvent> _lstSetEvent = new();
 
         private T _dto;
 

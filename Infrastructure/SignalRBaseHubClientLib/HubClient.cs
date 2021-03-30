@@ -1,19 +1,25 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
+using ModelLib;
 
 namespace SignalRBaseHubClientLib
 {
     public class HubClient : IDisposable
     {
         public string Url { get; }
+        public string ClientId { get; }
 
         public HubConnection Connection { get; protected set; }
         protected CancellationTokenSource _cts = new();
 
-        public HubClient(string url) => 
-            Url = url; 
+        public HubClient(string url, string cleintId = null)
+        {
+            Url = url;
+            ClientId = string.IsNullOrWhiteSpace(cleintId) ? $"{Guid.NewGuid()}" : cleintId;
+        }
 
         public async Task<HubClient> StartConnectionAsync(int retryIntervalMs = 0, int numOfAttempts = 0)
         {
@@ -37,16 +43,43 @@ namespace SignalRBaseHubClientLib
 
             return null;
         }
-        
-        public async Task<bool> InvokeAsync(string methodName, params object[] args)
+
+        public async Task<object> RpcAsync(string interfaceName, string methodName, params object[] args)
         {
             if (Connection == null || _cts.Token.IsCancellationRequested || args == null)
-                return false;
+                return null;
+
+            RpcDto rpcArgs = new()
+            {
+                ClientId = ClientId,
+                Id = $"{Guid.NewGuid()}",
+                Kind = DtoKind.Request,
+                Status = DtoStatus.Created,
+                InterfaceName = interfaceName,
+                MethodName = methodName,
+                Args = args?.Select(a => new DtoData { TypeName = a.GetType().FullName, Data = a })?.ToArray()
+            };
 
             try
             {
-                await Connection.InvokeAsync(methodName, args, _cts.Token);
-                return true;
+                var result = await Connection.InvokeAsync<object>("ProcessRpc", rpcArgs, _cts.Token);
+                return result;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Hub\"{Url}\" InvokeAsync() of method \"{methodName}()\" had failed. ", e);
+            }
+        }
+
+        public async Task<object> InvokeAsync(string methodName, params object[] args)
+        {
+            if (Connection == null || _cts.Token.IsCancellationRequested || args == null)
+                return null;
+
+            try
+            {
+                var result = await Connection.InvokeAsync<object>(methodName, args, _cts.Token);
+                return result;
             }
             catch (Exception e)
             {
@@ -67,7 +100,7 @@ namespace SignalRBaseHubClientLib
                     {
                         try
                         {
-                            callback(t);
+                             callback(t);
                         }
                         catch (Exception e)
                         {
