@@ -16,6 +16,8 @@ namespace SignalRBaseHubServerLib
 {
     public class StreamingHub<T> : Hub, ISetEvent
     {
+        #region Inner Descriptor classes
+
         class Descriptor
         {
             public Type type;
@@ -37,6 +39,8 @@ namespace SignalRBaseHubServerLib
             }
         }
 
+        #endregion // Inner Descriptor classes
+
         protected readonly IStreamingDataProvider<T> _streamingDataProvider;
         private readonly AsyncAutoResetEvent _aev = new();
 
@@ -48,12 +52,18 @@ namespace SignalRBaseHubServerLib
         //private readonly ILogger _logger;
         //private readonly ILoggerFactory _loggerFactory;
 
+        #region Ctor
+
         protected StreamingHub(StreamingDataProvider<T> streamingDataProvider)
         {
             IsValid = true;
             streamingDataProvider.Add(this);
             _streamingDataProvider = streamingDataProvider;
         }
+
+        #endregion // Ctor
+
+        #region Register
 
         public static void RegisterSingleton<TInterface, TImpl>() where TImpl : TInterface, new() =>
             Register(typeof(TInterface), typeof(TImpl));
@@ -64,7 +74,6 @@ namespace SignalRBaseHubServerLib
         public static void RegisterPerSession<TInterface, TImpl>(int sessionLifeTimeInMin = -1) where TImpl : TInterface, new() =>
             Register(typeof(TInterface), typeof(TImpl), true, sessionLifeTimeInMin);
 
-
         private static void Register(Type @interface, Type impl, bool isPerSession = false, int sessionLifeTimeInMin = -1)
         {
             //_logger.LogInformation($"About to register interface '{@interface.Name}' with type '{impl.Name}', isPerSession = {isPerSession}, sessionLifeTimeInMin = {sessionLifeTimeInMin}");
@@ -72,7 +81,7 @@ namespace SignalRBaseHubServerLib
             {
                 type = impl,
                 isPerSession = isPerSession,
-                dctType = GetTypeDictionary(@interface), 
+                dctType = GetTypeDictionary(@interface),
             };
 
             if (isPerSession && sessionLifeTimeInMin > 0 && _timer == null)
@@ -97,6 +106,10 @@ namespace SignalRBaseHubServerLib
             //_logger.LogInformation($"Registered interface '{@interface.Name}' with type '{impl.Name}', isPerSession = {isPerSession}, sessionLifeTimeInMin = {sessionLifeTimeInMin}");
         }
 
+        #endregion // Register
+
+        #region Type manipulations
+
         private static Dictionary<string, Type> GetTypeDictionary(Type interfaceType)
         {
             Dictionary<string, Type> dctType = new();
@@ -107,12 +120,10 @@ namespace SignalRBaseHubServerLib
             return dctType;
         }
 
-        private static bool Filter(Type type)
-        {
-            return !type.FullName.Contains("System.");
-        }
+        private static bool Filter(Type type) =>
+            !type.FullName.Contains("System.");
 
-        private static object[] GetMethodArguments(RpcDto arg)
+        private static object[] GetMethodArguments(RpcDtoRequest arg)
         {
             if (!_dctInterface.TryGetValue(arg.InterfaceName, out Descriptor descriptor))
                 return null;
@@ -136,6 +147,10 @@ namespace SignalRBaseHubServerLib
 
             return methodParams.ToArray();
         }
+
+        #endregion // Type manipulations
+
+        #region Resolve, CreateInstance
 
         private object Resolve(string interafceName, string clientId = null)
         {
@@ -186,7 +201,11 @@ namespace SignalRBaseHubServerLib
         //    return ob;
         //}
 
-        public virtual object ProcessRpc(RpcDto arg)
+        #endregion Resolve, CreateInstance
+
+        #region ProcessRpc, StartStreaming
+
+        public virtual RpcDtoResponse ProcessRpc(RpcDtoRequest arg)
         {
             if (!_dctInterface.TryGetValue(arg.InterfaceName, out Descriptor descriptor))
                 throw new Exception($"Interface '{arg.InterfaceName}' is not regidtered");
@@ -195,36 +214,28 @@ namespace SignalRBaseHubServerLib
             var localOb = Resolve(arg.InterfaceName, arg.ClientId);
 
             var methodInfo = localOb?.GetType().GetMethod(arg.MethodName);
-            var retOb = methodInfo?.Invoke(localOb, methodArgs);
+
+            object result;
+            try
+            {
+                result = methodInfo?.Invoke(localOb, methodArgs);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed method '{arg.InterfaceName}.{arg.MethodName}()'", e);
+            }
+
+            return new RpcDtoResponse
+            {
+                ClientId = arg.ClientId,
+                Id = arg.Id,
+                InterfaceName = arg.InterfaceName,
+                MethodName = arg.MethodName,
+                Status = DtoStatus.Processed,
+                Result = new() { TypeName = result.GetType().FullName, Data = result }
+            };
             //await Clients.All.SendAsync("ReceiveMessage", "...", retOb.ToString());
-            return retOb;
         }
-
-        //return await Task.Run(() => new object());
-
-        //StringBuilder sbClients = new();
-        //StringBuilder sbData = new();
-
-        //if (args != null && args.Length > 0)
-        //{
-        //    sbClients.Append($"{Environment.NewLine}Clients: ");
-        //    foreach (var clientId in args.Select(dto => dto.ClientId).Distinct())
-        //        sbClients.Append($"{clientId} ");
-
-        //    sbData.Append("--> Data: ");
-        //    foreach (var dto in args)
-        //        sbData.Append($"{dto.Data} ");
-        //}
-        //else
-        //{
-        //    sbClients.Append("No clients");
-        //    sbData.Append("No data available");
-        //}
-
-        //await Clients.All.SendAsync("ReceiveMessage", sbClients.ToString(), sbData.ToString());
-
-        //return args;
-        //}
 
         public ChannelReader<T> StartStreaming() =>
             Observable.Create<T>(async observer =>
@@ -236,6 +247,10 @@ namespace SignalRBaseHubServerLib
                 }
             }).AsChannelReader();
 
+        #endregion // ProcessRpc, StartStreaming 
+
+        #region Aux
+
         public bool IsValid
         {
             get => Interlocked.Exchange(ref _isValid, _isValid) == 1;
@@ -244,6 +259,8 @@ namespace SignalRBaseHubServerLib
         
         public void SetEvent() =>
             _aev.Set();
+
+        #endregion // Aux
 
         protected override void Dispose(bool disposing)
         {

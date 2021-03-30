@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using ModelLib;
+using Newtonsoft.Json.Linq;
 
 namespace SignalRBaseHubClientLib
 {
@@ -15,11 +18,44 @@ namespace SignalRBaseHubClientLib
         public HubConnection Connection { get; protected set; }
         protected CancellationTokenSource _cts = new();
 
+        private Dictionary<string, Type> _dctType = new();
+
         public HubClient(string url, string cleintId = null)
         {
             Url = url;
             ClientId = string.IsNullOrWhiteSpace(cleintId) ? $"{Guid.NewGuid()}" : cleintId;
         }
+
+        #region Type manipulations
+
+        public HubClient RegisterInterface<TInterface>() where TInterface : class
+        {
+            foreach (var mi in typeof(TInterface).GetMethods())
+            {
+                var rt = mi.ReturnType;
+                _dctType[rt.FullName] = rt;
+            }
+
+            return this;
+        }
+
+        private object GetResult(JObject jo)
+        {
+            if (jo == null)
+                return null;
+
+            if (!jo.TryGetValue("result", out JToken jt))
+                return null;
+
+            var typFullName = jt.First().Values<string>().First();
+            var result = jt.Last().Values<object>().First();
+
+            return JsonSerializer.Deserialize($"{((JValue)result)}", _dctType[typFullName], new() { PropertyNameCaseInsensitive = true });
+        }
+
+        #endregion // Type manipulations
+
+        #region StartConnection, Subscribe
 
         public async Task<HubClient> StartConnectionAsync(int retryIntervalMs = 0, int numOfAttempts = 0)
         {
@@ -44,16 +80,48 @@ namespace SignalRBaseHubClientLib
             return null;
         }
 
+        public async Task<bool> SubscribeAsync<T>(Action<T> callback)
+        {
+            if (Connection == null || _cts.Token.IsCancellationRequested || callback == null)
+                return false;
+
+            try
+            {
+                var channel = await Connection.StreamAsChannelAsync<T>("StartStreaming", _cts.Token);
+                while (await channel.WaitToReadAsync())
+                    while (channel.TryRead(out var t))
+                    {
+                        try
+                        {
+                            callback(t);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Exception($"Hub \"{Url}\" Subscribe(): callback had failed. ", e);
+                        }
+                    }
+
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
+        }
+
+        #endregion // StartConnection, Subscribe
+
+        #region Invoke, Rpc
+
         public async Task<object> RpcAsync(string interfaceName, string methodName, params object[] args)
         {
             if (Connection == null || _cts.Token.IsCancellationRequested || args == null)
                 return null;
 
-            RpcDto rpcArgs = new()
+            RpcDtoRequest rpcArgs = new()
             {
                 ClientId = ClientId,
                 Id = $"{Guid.NewGuid()}",
-                Kind = DtoKind.Request,
                 Status = DtoStatus.Created,
                 InterfaceName = interfaceName,
                 MethodName = methodName,
@@ -63,7 +131,7 @@ namespace SignalRBaseHubClientLib
             try
             {
                 var result = await Connection.InvokeAsync<object>("ProcessRpc", rpcArgs, _cts.Token);
-                return result;
+                return GetResult((JObject)result);
             }
             catch (Exception e)
             {
@@ -87,39 +155,16 @@ namespace SignalRBaseHubClientLib
             }
         }
 
-        public async Task<bool> SubscribeAsync<T>(Action<T> callback)
-        {
-            if (Connection == null || _cts.Token.IsCancellationRequested || callback == null)
-                return false;
+        #endregion // Invoke, Rpc
 
-            try
-            {
-                var channel = await Connection.StreamAsChannelAsync<T>("StartStreaming", _cts.Token);
-                while (await channel.WaitToReadAsync())
-                    while (channel.TryRead(out var t))
-                    {
-                        try
-                        {
-                             callback(t);
-                        }
-                        catch (Exception e)
-                        {
-                            throw new Exception($"Hub \"{Url}\" Subscribe(): callback had failed. ", e);
-                        }
-                    }
-
-                return true;
-            }
-            catch (OperationCanceledException)
-            {
-                return false;
-            }
-        }
+        #region Cancel, Dispose
 
         public void Cancel() => 
             _cts.Cancel();
 
         public void Dispose() => 
             Connection.DisposeAsync().Wait();
+
+        #endregion // Cancel, Dispose
     }
 }

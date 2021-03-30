@@ -49,40 +49,43 @@ namespace SignalRClientTest
         private static async void MainAsync()
         {
             // Create hub client and connect to server
-            using (_hubClient = await new HubClient(URL).StartConnectionAsync(retryIntervalMs: 1000, numOfAttempts: 15))
-            {
-                // Client provides handler for server's call of method ReceiveMessage
-                _hubClient.Connection.On("ReceiveMessage", (string s0, string s1) => Console.WriteLine($"{s0} {s1}"));
+            _hubClient = await new HubClient(URL)
+                    .RegisterInterface<IRemoteCall1>()
+                    .StartConnectionAsync(retryIntervalMs: 1000, numOfAttempts: 15);
+            
+            // Client provides handler for server's call of method ReceiveMessage
+            _hubClient.Connection.On("ReceiveMessage", (string s0, string s1) => Console.WriteLine($"{s0} {s1}"));
 
-                //public int Foo(string name, Arg1[] arg1s)
-                var result = await _hubClient.RpcAsync("IRemoteCall1", "Foo", "theName", new Arg1[]
-                    {
-                        new Arg1 { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" } } },
-                        new Arg1 { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" } } }
-                    });
-
-                // Client calls server's method ProcessDto
-                var br0 = await _hubClient.InvokeAsync("ProcessDto",
-                new[]
+            //public int Foo(string name, Arg1[] arg1s)
+            var task = _hubClient.RpcAsync("IRemoteCall1", "Foo", "theName", new Arg1[]
                 {
-                    new Dto { ClientId = ".NETCoreClient", Data = 91, Args = new Arg1[]
-                                {
-                                new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
-                                new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
-                                }
-                    },
-                    new Dto { ClientId = ".NETCoreClient", Data = 92, Args = new Arg1[]
-                                {
-                                new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
-                                new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
-                                }
-                    },
+                    new Arg1 { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" } } },
+                    new Arg1 { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" } } }
                 });
 
-                // Client subscribes for stream of Dto objects providing appropriate handler
-                if (!await _hubClient.SubscribeAsync<Dto>(arg => Console.WriteLine(arg)))
-                    _ev.Set();
-            }
+            // Client calls server's method ProcessDto
+            var br0 = await _hubClient.InvokeAsync("ProcessDto",
+            new[]
+            {
+                new Dto { ClientId = ".NETCoreClient", Data = 91, Args = new Arg1[]
+                            {
+                            new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
+                            new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
+                            }
+                },
+                new Dto { ClientId = ".NETCoreClient", Data = 92, Args = new Arg1[]
+                            {
+                            new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
+                            new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
+                            }
+                },
+            });
+
+            var result = (int) await task;
+
+            // Client subscribes for stream of Dto objects providing appropriate handler
+            if (!await _hubClient.SubscribeAsync<Dto>(arg => Console.WriteLine(arg)))
+                _ev.Set();     
         }
     }
 }
