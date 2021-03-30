@@ -12,4 +12,14 @@ namespace RemoteInterfaces
     {
         public string Id { get; set; }
     }
+
+    public class RetOuter
+    {
+        public RetInner[] inners { get; set; }
+    }
+
+    public class RetInner
+    {
+        public string id { get; set; }
+    }
 }

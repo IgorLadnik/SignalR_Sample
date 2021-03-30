@@ -115,13 +115,10 @@ namespace SignalRBaseHubServerLib
             Dictionary<string, Type> dctType = new();
             foreach (var mi in interfaceType.GetMethods())
                 foreach (var pi in mi.GetParameters())
-                    if (Filter(pi.ParameterType))
-                        dctType[pi.ParameterType.FullName] = pi.ParameterType;
+                    dctType[pi.ParameterType.FullName] = pi.ParameterType;
+
             return dctType;
         }
-
-        private static bool Filter(Type type) =>
-            !type.FullName.Contains("System.");
 
         private static object[] GetMethodArguments(RpcDtoRequest arg)
         {
@@ -132,12 +129,6 @@ namespace SignalRBaseHubServerLib
             foreach (var dtoData in arg?.Args)
             {
                 var je = (JsonElement)dtoData.Data;
-                switch (je.ValueKind)
-                {
-                    case JsonValueKind.String:
-                        methodParams.Add(je.GetString());
-                        continue;
-                }
 
                 if (!descriptor.dctType.TryGetValue(dtoData.TypeName, out Type type))
                     throw new Exception($"Type '{dtoData.TypeName}' is not registered");
