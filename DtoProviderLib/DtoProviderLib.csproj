@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\SignalRBaseHubServerLib\SignalRBaseHubServerLib.csproj" />
-    <ProjectReference Include="..\ModelLib\ModelLib.csproj" />
+    <ProjectReference Include="..\ModelLib\DtoLib.csproj" />
   </ItemGroup>
 
 </Project>

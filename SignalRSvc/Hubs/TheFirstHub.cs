@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Text;
 using Microsoft.AspNetCore.SignalR;
 using SignalRBaseHubServerLib;
-using ModelLib;
+using DtoLib;
 using DtoProviderLib;
 using RemoteInterfaces;
 using RemoteImplementations;

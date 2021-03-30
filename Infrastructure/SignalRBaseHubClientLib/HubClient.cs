@@ -5,8 +5,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
-using ModelLib;
 using Newtonsoft.Json.Linq;
+using DtoLib;
 
 namespace SignalRBaseHubClientLib
 {

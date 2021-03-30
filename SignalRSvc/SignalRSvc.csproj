@@ -28,7 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DtoProviderLib\DtoProviderLib.csproj" />
     <ProjectReference Include="..\Infrastructure\SignalRBaseHubServerLib\SignalRBaseHubServerLib.csproj" />
-    <ProjectReference Include="..\ModelLib\ModelLib.csproj" />
+    <ProjectReference Include="..\ModelLib\DtoLib.csproj" />
     <ProjectReference Include="..\RemoteCallable\RemoteImplementations\RemoteImplementations.csproj" />
   </ItemGroup>
 

@@ -2,7 +2,7 @@
 using System.Threading;
 using Microsoft.AspNetCore.SignalR.Client;
 using SignalRBaseHubClientLib;
-using ModelLib;
+using DtoLib;
 using RemoteInterfaces;
 
 namespace SignalRClientTest

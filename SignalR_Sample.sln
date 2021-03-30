@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalRBaseHubClientLib", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DtoProviderLib", "DtoProviderLib\DtoProviderLib.csproj", "{9C786AF6-E48F-4C62-8FC4-1745485A017F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModelLib", "ModelLib\ModelLib.csproj", "{1321E3C2-C458-479E-8705-5C4B9ABB5FA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DtoLib", "ModelLib\DtoLib.csproj", "{1321E3C2-C458-479E-8705-5C4B9ABB5FA1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalRClientTest", "SignalRClientTest\SignalRClientTest.csproj", "{4BC2751C-1554-45E4-8CE8-63E74036E1D1}"
 EndProject

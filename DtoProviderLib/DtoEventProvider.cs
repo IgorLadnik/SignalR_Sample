@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using ModelLib;
+using DtoLib;
 using SignalRBaseHubServerLib;
 
 namespace DtoProviderLib

@@ -1,6 +1,6 @@
 ﻿using RemoteInterfaces;
 
-namespace ModelLib
+namespace DtoLib
 {
     public class Dto
     {

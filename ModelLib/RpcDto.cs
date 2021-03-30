@@ -1,4 +1,4 @@
-﻿namespace ModelLib
+﻿namespace DtoLib
 {
     public class RpcDtoCommon 
     {
