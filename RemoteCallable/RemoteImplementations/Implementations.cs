@@ -16,18 +16,18 @@ namespace RemoteImplementations
                 {
                     new RetOuter 
                     {
-                        inners = new RetInner[] 
+                        Inners = new RetInner[] 
                         { 
-                            new() { id = "0_00" }, new() { id = "0_01" },
-                            new() { id = "0_10" }, new() { id = "0_11" }
+                            new() { Id = "0_00" }, new() { Id = "0_01" },
+                            new() { Id = "0_10" }, new() { Id = "0_11" }
                         }
                     },
                     new RetOuter
                     {
-                        inners = new RetInner[]
+                        Inners = new RetInner[]
                         {
-                            new() { id = "1_00" }, new() { id = "1_01" },
-                            new() { id = "1_10" }, new() { id = "1_11" }
+                            new() { Id = "1_00" }, new() { Id = "1_01" },
+                            new() { Id = "1_10" }, new() { Id = "1_11" }
                         }
                     }
                 };
