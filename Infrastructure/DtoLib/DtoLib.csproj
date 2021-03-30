@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RemoteCallable\RemoteInterfaces\RemoteInterfaces.csproj" />
+    <ProjectReference Include="..\..\RemoteCallable\RemoteInterfaces\RemoteInterfaces.csproj" />
   </ItemGroup>
 
 </Project>

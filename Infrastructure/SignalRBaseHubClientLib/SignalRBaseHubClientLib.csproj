@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ModelLib\DtoLib.csproj" />
+    <ProjectReference Include="..\DtoLib\DtoLib.csproj" />
   </ItemGroup>
 
 </Project>

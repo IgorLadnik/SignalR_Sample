@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\SignalRBaseHubClientLib\SignalRBaseHubClientLib.csproj" />
-    <ProjectReference Include="..\ModelLib\DtoLib.csproj" />
   </ItemGroup>
 
 </Project>

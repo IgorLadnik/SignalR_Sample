@@ -10,8 +10,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ModelLib\DtoLib.csproj" />
     <ProjectReference Include="..\AsyncAutoResetEventLib\AsyncAutoResetEventLib.csproj" />
+    <ProjectReference Include="..\DtoLib\DtoLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
