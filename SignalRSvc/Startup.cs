@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalRSvc.Hubs;
@@ -59,7 +60,12 @@ namespace SignalRSvc
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<AHub>("/hub/a");
+                endpoints.MapHub<AHub>("/hub/a", options =>
+                {
+                    options.Transports =
+                        HttpTransportType.WebSockets |
+                        HttpTransportType.LongPolling;
+                });
                 endpoints.MapControllers();            
             });
         }

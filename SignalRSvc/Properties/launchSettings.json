@@ -16,7 +16,7 @@
     },
     "SignalRSvc": {
       "commandName": "Project",
-      "commandLineArgs": "tls",
+      "commandLineArgs": "TLS",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

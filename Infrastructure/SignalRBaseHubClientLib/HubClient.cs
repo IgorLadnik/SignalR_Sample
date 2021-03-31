@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
 using DtoLib;
+using System.Security.Cryptography.X509Certificates;
+using System.IO;
+using Microsoft.AspNetCore.Http.Connections.Client;
+using System.Net.Http;
 
 namespace SignalRBaseHubClientLib
 {
@@ -81,7 +85,29 @@ namespace SignalRBaseHubClientLib
 
         public async Task<HubClient> StartConnectionAsync(int retryIntervalMs = 0, int numOfAttempts = 0)
         {
-            Connection = new HubConnectionBuilder().WithUrl(Url).Build();
+            //var certificateFile = "certificate.crt";
+
+            // Load the certificate into an X509Certificate object.
+            //X509Certificate2 cert = null;
+            //try
+            //{
+            //    cert = new(certificateFile);
+            //}
+            //catch (Exception e)
+            //{
+            //}
+
+            Connection = new HubConnectionBuilder().WithUrl(Url, options =>
+                //options.ClientCertificates = new(new X509Certificate[] { new X509Certificate2(certificateFile) })
+                options.HttpMessageHandlerFactory = (message) =>
+                {
+                    if (message is HttpClientHandler clientHandler)
+                        // bypass SSL certificate
+                        clientHandler.ServerCertificateCustomValidationCallback +=
+                            (sender, certificate, chain, sslPolicyErrors) => { return true; };
+                    return message;
+                })             
+                .Build();
 
             for (var i = 0; i < numOfAttempts; i++)
             {
