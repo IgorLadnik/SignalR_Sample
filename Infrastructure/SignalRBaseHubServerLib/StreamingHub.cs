@@ -209,9 +209,13 @@ namespace SignalRBaseHubServerLib
 
         #endregion Resolve, CreateInstance
 
-        #region ProcessRpc, StartStreaming
+        #region Rpc, StartStreaming
 
-        public virtual RpcDtoResponse ProcessRpc(RpcDtoRequest arg)
+        public RpcDtoResponse Rpc(RpcDtoRequest arg) => Rpc(arg, false);
+
+        public void RpcOneWay(RpcDtoRequest arg) => Rpc(arg, true);
+
+        private RpcDtoResponse Rpc(RpcDtoRequest arg, bool isOneWay)
         {
             if (!_dctInterface.TryGetValue(arg.InterfaceName, out Descriptor descriptor))
                 throw new Exception($"Interface '{arg.InterfaceName}' is not regidtered");
@@ -225,16 +229,16 @@ namespace SignalRBaseHubServerLib
             {
                 if (directCall != null)
                 {
-                    _logger.LogInformation($"Calling method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - direct call");
+                    _logger.LogInformation($"Before calling method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - direct call");
                     result = directCall.DirectCall(arg.MethodName, methodArgs);
-                    _logger.LogInformation($"Called method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - call with reflection");
+                    _logger.LogInformation($"After calling method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - direct call");
                 }
                 else
                 {
-                    _logger.LogInformation($"Calling method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - call with reflection");
+                    _logger.LogInformation($"Before calling method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - call with reflection");
                     var methodInfo = localOb?.GetType().GetMethod(arg.MethodName);
                     result = methodInfo?.Invoke(localOb, methodArgs);
-                    _logger.LogInformation($"Called method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - call with reflection");
+                    _logger.LogInformation($"After calling method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - call with reflection");
                 }
             }
             catch (Exception e)
@@ -242,15 +246,18 @@ namespace SignalRBaseHubServerLib
                 throw new Exception($"Failed method '{arg.InterfaceName}.{arg.MethodName}()'", e);
             }
 
-            return new RpcDtoResponse
-            {
-                ClientId = arg.ClientId,
-                Id = arg.Id,
-                InterfaceName = arg.InterfaceName,
-                MethodName = arg.MethodName,
-                Status = DtoStatus.Processed,
-                Result = new() { TypeName = result.GetType().FullName, Data = result }
-            };
+            return isOneWay 
+                    ? null
+                    : new RpcDtoResponse
+                    {
+                        ClientId = arg.ClientId,
+                        Id = arg.Id,
+                        InterfaceName = arg.InterfaceName,
+                        MethodName = arg.MethodName,
+                        Status = DtoStatus.Processed,
+                        Result = new() { TypeName = result.GetType().FullName, Data = result }
+                    };
+
             //await Clients.All.SendAsync("ReceiveMessage", "...", retOb.ToString());
         }
 
@@ -264,7 +271,7 @@ namespace SignalRBaseHubServerLib
                 }
             }).AsChannelReader();
 
-        #endregion // ProcessRpc, StartStreaming 
+        #endregion // Rpc, StartStreaming 
 
         #region Aux
 

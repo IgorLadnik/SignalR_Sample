@@ -27,17 +27,16 @@ namespace SignalRClientTest
             // Client provides handler for server's call of method ReceiveMessage
             hubClient.Connection.On("ReceiveMessage", (string s0, string s1) => Console.WriteLine($"{s0} {s1}"));
 
-            var task1 = hubClient.RpcAsync("IRemoteCall1", "Foo", "theName", new Arg1[]
+            var args1 = new Arg1[]
                 {
                     new Arg1 { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" } } },
                     new Arg1 { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" } } }
-                });
+                };
 
-            var task2 = hubClient.RpcAsync("IRemoteCall2", "Foo", "theName", new Arg1[]
-                {
-                    new Arg1 { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" } } },
-                    new Arg1 { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" } } }
-                });
+            var task1 = hubClient.RpcAsync("IRemoteCall1", "Foo", "theName", args1);
+            var task2 = hubClient.RpcAsync("IRemoteCall2", "Foo", "theName", args1);
+
+            var echo = await hubClient.RpcAsync("IRemoteCall1", "Echo", " my text");
 
             //// Client calls server's method ProcessDto
             //var br0 = await _hubClient.InvokeAsync("ProcessDto",

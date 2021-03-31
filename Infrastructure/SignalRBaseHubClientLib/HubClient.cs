@@ -56,9 +56,16 @@ namespace SignalRBaseHubClientLib
             if (jOb == null)
                 jOb = result as JValue;
 
-            return jOb != null
-                       ? JsonSerializer.Deserialize($"{jOb}", _dctType[typFullName], new() { PropertyNameCaseInsensitive = true })
-                       : null;
+            if (jOb != null) 
+            {
+                var type = _dctType[typFullName];
+                var jVal = jOb as JValue;
+                return jVal != null && jVal?.Value.GetType() == type
+                        ? jVal.Value
+                        : JsonSerializer.Deserialize($"{jOb}", _dctType[typFullName], new() { PropertyNameCaseInsensitive = true });
+            }
+
+            return null;
         }
 
         #endregion // Type manipulations
@@ -121,7 +128,13 @@ namespace SignalRBaseHubClientLib
 
         #region Invoke, Rpc
 
-        public async Task<object> RpcAsync(string interfaceName, string methodName, params object[] args)
+        public Task<object> RpcAsync(string interfaceName, string methodName, params object[] args) =>
+            RpcAsync(false, interfaceName, methodName, args);
+
+        public Task RpcOneWay(string interfaceName, string methodName, params object[] args) =>
+            RpcAsync(true, interfaceName, methodName, args);
+
+        private async Task<object> RpcAsync(bool isOneWay, string interfaceName, string methodName, object[] args)
         {
             if (Connection == null || _cts.Token.IsCancellationRequested || args == null)
                 return null;
@@ -138,8 +151,8 @@ namespace SignalRBaseHubClientLib
 
             try
             {
-                var result = await Connection.InvokeAsync<object>("ProcessRpc", rpcArgs, _cts.Token);
-                return GetResult((JObject)result);
+                var result = await Connection.InvokeAsync<object>(isOneWay ? "RpcOneWay" : "Rpc", rpcArgs, _cts.Token);
+                return isOneWay ? null : GetResult((JObject)result);
             }
             catch (Exception e)
             {
