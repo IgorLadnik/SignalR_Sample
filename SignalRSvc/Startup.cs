@@ -59,7 +59,7 @@ namespace SignalRSvc
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<TheFirstHub>("/hub/the1st");
+                endpoints.MapHub<AHub>("/hub/a");
                 endpoints.MapControllers();            
             });
         }

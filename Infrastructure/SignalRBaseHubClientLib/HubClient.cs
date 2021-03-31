@@ -106,7 +106,7 @@ namespace SignalRBaseHubClientLib
             return null;
         }
 
-        public async void SubscribeAsync<T>(Action<T> callback)
+        public async void Subscribe<T>(Action<T> callback)
         {
             if (Connection == null || _cts.Token.IsCancellationRequested || callback == null)
                 return;
@@ -128,8 +128,6 @@ namespace SignalRBaseHubClientLib
                             throw new Exception(errMessage, e);
                         }
                     }
-
-                //return true;
             }
             catch (OperationCanceledException)
             {

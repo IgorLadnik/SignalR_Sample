@@ -4,15 +4,12 @@ using System.Threading.Channels;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
 using AsyncAutoResetEventLib;
-using DtoLib;
-using System.Threading.Tasks;
 using System.Text.Json;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System;
-using System.Reflection;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using DtoLib;
 
 namespace SignalRBaseHubServerLib
 {
@@ -286,10 +283,14 @@ namespace SignalRBaseHubServerLib
 
         #endregion // Aux
 
+        #region Dispose
+
         protected override void Dispose(bool disposing)
         {
             IsValid = false;
             base.Dispose(disposing);
         }
+
+        #endregion // Dispose
     }
 }

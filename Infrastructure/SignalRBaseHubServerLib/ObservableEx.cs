@@ -5,9 +5,9 @@ using System.Threading.Channels;
 
 namespace SignalRBaseHubServerLib
 {
-    public static class ObservableEx
+    internal static class ObservableEx
     {
-        public static ChannelReader<T> AsChannelReader<T>(this IObservable<T> observable, int? maxBufferSize = null)
+        internal static ChannelReader<T> AsChannelReader<T>(this IObservable<T> observable, int? maxBufferSize = null)
         {
             // This sample shows adapting an observable to a ChannelReader without 
             // back pressure, if the connection is slower than the producer, memory will
