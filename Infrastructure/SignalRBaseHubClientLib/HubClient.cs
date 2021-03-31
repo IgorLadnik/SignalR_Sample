@@ -102,9 +102,9 @@ namespace SignalRBaseHubClientLib
                 options.HttpMessageHandlerFactory = (message) =>
                 {
                     if (message is HttpClientHandler clientHandler)
-                        // bypass SSL certificate
-                        clientHandler.ServerCertificateCustomValidationCallback +=
-                            (sender, certificate, chain, sslPolicyErrors) => { return true; };
+                        // bypass TLS certificate
+                        clientHandler.ServerCertificateCustomValidationCallback += 
+                            (sender, certificate, chain, sslPolicyErrors) => true;
                     return message;
                 })             
                 .Build();
