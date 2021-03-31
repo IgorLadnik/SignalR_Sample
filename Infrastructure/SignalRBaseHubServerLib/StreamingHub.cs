@@ -50,7 +50,7 @@ namespace SignalRBaseHubServerLib
 
         private int _isValid = 0;
 
-        private static Dictionary<string, Descriptor> _dctInterface = new();
+        private readonly static Dictionary<string, Descriptor> _dctInterface = new();
         protected readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
 
