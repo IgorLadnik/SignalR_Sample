@@ -1,6 +1,7 @@
 ﻿using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Channels;
+using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
 using AsyncAutoResetEventLib;
 using DtoLib;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System;
 using System.Reflection;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace SignalRBaseHubServerLib
 {
@@ -23,7 +25,7 @@ namespace SignalRBaseHubServerLib
             public Type type;
             public object ob;
             public bool isPerSession = false;
-            public Dictionary<string, PerSessionDescriptor> dctSession;
+            public ConcurrentDictionary<string, PerSessionDescriptor> dctSession;
             public Dictionary<string, Type> dctType;
         }
 
@@ -47,15 +49,17 @@ namespace SignalRBaseHubServerLib
         private int _isValid = 0;
 
         private static Dictionary<string, Descriptor> _dctInterface = new();
+        protected readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
         private static Timer _timer;
-        //private readonly ILogger _logger;
-        //private readonly ILoggerFactory _loggerFactory;
 
         #region Ctor
 
-        protected StreamingHub(StreamingDataProvider<T> streamingDataProvider)
+        protected StreamingHub(ILoggerFactory loggerFactory, StreamingDataProvider<T> streamingDataProvider)
         {
+            _loggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<StreamingHub<T>>();
             IsValid = true;
             streamingDataProvider.Add(this);
             _streamingDataProvider = streamingDataProvider;
@@ -65,8 +69,16 @@ namespace SignalRBaseHubServerLib
 
         #region Register
 
-        public static void RegisterSingleton<TInterface, TImpl>() where TImpl : TInterface, new() =>
-            Register(typeof(TInterface), typeof(TImpl));
+        public static void RegisterSingleton<TInterface>(TInterface ob) 
+        {
+            var @interface = typeof(TInterface); 
+            _dctInterface[@interface.Name] = new()
+            {
+                ob = ob,
+                isPerSession = false,
+                dctType = GetTypeDictionary(@interface),
+            };
+        }
 
         public static void RegisterPerCall<TInterface, TImpl>() where TImpl : TInterface, new() =>
             Register(typeof(TInterface), typeof(TImpl));
@@ -181,16 +193,15 @@ namespace SignalRBaseHubServerLib
         }
 
         private object CreateInstanceWithLoggerIfSupported(Type type) =>
-            //AssignLoggerIfSupported(Activator.CreateInstance(type));
-            Activator.CreateInstance(type);
+            AssignLoggerIfSupported(Activator.CreateInstance(type));
 
-        //private object AssignLoggerIfSupported(object ob)
-        //{
-        //    var log = ob as ILog;
-        //    if (log != null)
-        //        log.LoggerFactory = _loggerFactory;
-        //    return ob;
-        //}
+        private object AssignLoggerIfSupported(object ob)
+        {
+            var log = ob as ILog;
+            if (log != null)
+                log.LoggerFactory = _loggerFactory;
+            return ob;
+        }
 
         #endregion Resolve, CreateInstance
 
@@ -203,13 +214,24 @@ namespace SignalRBaseHubServerLib
 
             var methodArgs = GetMethodArguments(arg);
             var localOb = Resolve(arg.InterfaceName, arg.ClientId);
-
-            var methodInfo = localOb?.GetType().GetMethod(arg.MethodName);
+            var directCall = localOb as IDirectCall;
 
             object result;
             try
             {
-                result = methodInfo?.Invoke(localOb, methodArgs);
+                if (directCall != null)
+                {
+                    _logger.LogInformation($"Calling method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - direct call");
+                    result = directCall.DirectCall(arg.MethodName, methodArgs);
+                    _logger.LogInformation($"Called method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - call with reflection");
+                }
+                else
+                {
+                    _logger.LogInformation($"Calling method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - call with reflection");
+                    var methodInfo = localOb?.GetType().GetMethod(arg.MethodName);
+                    result = methodInfo?.Invoke(localOb, methodArgs);
+                    _logger.LogInformation($"Called method '{arg.MethodName}()' of interface '{arg.InterfaceName}' - call with reflection");
+                }
             }
             catch (Exception e)
             {

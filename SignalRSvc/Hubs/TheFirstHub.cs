@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using SignalRBaseHubServerLib;
 using DtoLib;
 using DtoProviderLib;
@@ -19,9 +20,11 @@ namespace SignalRSvc.Hubs
         static TheFirstHub() 
         {
             RegisterPerCall<IRemoteCall1, RemoteCall1>();
+            RegisterPerSession<IRemoteCall2, RemoteCall2>();
         }
 
-        public TheFirstHub() : base(DtoEventProvider.Instance)
+        public TheFirstHub(ILoggerFactory loggerFactory) 
+            : base(loggerFactory, DtoEventProvider.Instance)
         {
         }
 
