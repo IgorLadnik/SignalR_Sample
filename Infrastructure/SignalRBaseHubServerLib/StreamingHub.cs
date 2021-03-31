@@ -43,6 +43,8 @@ namespace SignalRBaseHubServerLib
 
         #endregion // Inner Descriptor classes
 
+        #region Vars
+
         protected readonly IStreamingDataProvider<T> _streamingDataProvider;
         private readonly AsyncAutoResetEvent _aev = new();
 
@@ -53,6 +55,8 @@ namespace SignalRBaseHubServerLib
         private readonly ILoggerFactory _loggerFactory;
 
         private static Timer _timer;
+
+        #endregion // Vars
 
         #region Ctor
 
