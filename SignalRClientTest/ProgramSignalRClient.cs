@@ -1,31 +1,40 @@
 ﻿using System;
-using System.Threading;
-using Microsoft.AspNetCore.SignalR.Client;
-using SignalRBaseHubClientLib;
-using DtoLib;
-using RemoteInterfaces;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using SignalRBaseHubClientLib;
+using RemoteInterfaces;
 
 namespace SignalRClientTest
 {
     class ProgramSignalRClient
     {
-        private const string URL = "https://localhost:15001/hub/the1st"; 
-                                   //"http://localhost:15000/hub/the1st";
+        private const string URL = "https://localhost:15001/hub/the1st";
+        //"http://localhost:15000/hub/the1st";
 
-        //private static HubClient _hubClient;
-        //private static AutoResetEvent _ev = new AutoResetEvent(false);
-
-       private static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
+            using ILoggerFactory loggerFactory =
+                LoggerFactory.Create(builder =>
+                    builder.AddSimpleConsole(options =>
+                    {
+                        options.IncludeScopes = false;
+                        options.SingleLine = true;
+                        options.TimestampFormat = "hh:mm:ss ";
+                    }));
+            var logger = loggerFactory.CreateLogger<ProgramSignalRClient>();
+
+            logger.LogInformation("SignalRClientTest started");
+
             // Create hub client and connect to server
-            var hubClient = await new HubClient(URL)
+            using var hubClient = await new HubClient(URL, loggerFactory)
                     .RegisterInterface<IRemoteCall1>()
                     .RegisterInterface<IRemoteCall2>()
                     .StartConnectionAsync(retryIntervalMs: 1000, numOfAttempts: 15);
 
-            // Client provides handler for server's call of method ReceiveMessage
-            hubClient.Connection.On("ReceiveMessage", (string s0, string s1) => Console.WriteLine($"{s0} {s1}"));
+            #region Rpc
 
             var args1 = new Arg1[]
                 {
@@ -38,59 +47,85 @@ namespace SignalRClientTest
 
             var echo = await hubClient.RpcAsync("IRemoteCall1", "Echo", " my text");
 
-            //// Client calls server's method ProcessDto
-            //var br0 = await _hubClient.InvokeAsync("ProcessDto",
-            //new[]
-            //{
-            //    new Dto { ClientId = ".NETCoreClient", Data = 91, Args = new Arg1[]
-            //                {
-            //                new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
-            //                new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
-            //                }
-            //    },
-            //    new Dto { ClientId = ".NETCoreClient", Data = 92, Args = new Arg1[]
-            //                {
-            //                new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
-            //                new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
-            //                }
-            //    },
-            //});
+            hubClient.RpcOneWay("IRemoteCall2", "Foo", "theName", args1);
 
             var result1 = (RetOuter[])await task1;
             var result2 = (int)await task2;
 
-            //// Client subscribes for stream of Dto objects providing appropriate handler
-            //if (!await _hubClient.SubscribeAsync<Dto>(arg => Console.WriteLine(arg)))
-            //    _ev.Set();     
+            var durationTicksFoo1 = await TimeWatch(hubClient.RpcAsync, "IRemoteCall1", "Foo", "theName", args1);
+            var durationTicksFoo2 = await TimeWatch(hubClient.RpcAsync, "IRemoteCall2", "Foo", "theName", args1);
 
-            Console.WriteLine("Press any key \"q\" to quit or any other key to call server...");
-            var ch = Console.ReadKey().KeyChar;
+            var durationTicksEcho1 = await TimeWatch(hubClient.RpcAsync, "IRemoteCall1", "Echo", " some text");
+            var durationTicksEcho2 = await TimeWatch(hubClient.RpcAsync, "IRemoteCall2", "Echo", " some text");
 
-            //while (true)
-            //{
-            //    Console.WriteLine("Press any key \"q\" to quit or any other key to call server...");
-            //    var ch = Console.ReadKey().KeyChar;
-            //    if (ch == 'q' || ch == 'Q')
-            //    {
-            //        _hubClient.Cancel();
-            //        _ev.WaitOne();
-            //        break;
-            //    }
+            var durationTicksFooOneWay1 = await TimeWatch(hubClient.RpcOneWay, "IRemoteCall1", "Foo", "theName", args1);
+            var durationTicksFooOneWay2 = await TimeWatch(hubClient.RpcOneWay, "IRemoteCall2", "Foo", "theName", args1);
 
-            //    //var now = $"{DateTime.Now}";
-            //    var br0 = _hubClient.InvokeAsync("ProcessDto",
-            //        new []
-            //        {
-            //            new Dto { ClientId = ".NETCoreClient", Data = 10, Args = new Arg1[]
-            //                 {
-            //                    new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
-            //                    new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
-            //                 } 
-            //            },
-            //            new Dto { ClientId = ".NETCoreClient", Data = 11 },
-            //            new Dto { ClientId = ".NETCoreClient", Data = 12 },
-            //        }).Result;
-            //}
+            logger.LogInformation($"durationTicksFoo1:       {durationTicksFoo1}");
+            logger.LogInformation($"durationTicksFoo2:       {durationTicksFoo2}");
+            logger.LogInformation($"durationTicksEcho1:      {durationTicksEcho1}");
+            logger.LogInformation($"durationTicksEcho2:      {durationTicksEcho1 }");
+            logger.LogInformation($"durationTicksFooOneWay1: {durationTicksFooOneWay1}");
+            logger.LogInformation($"durationTicksFooOneWay2: {durationTicksFooOneWay2}");
+
+            #endregion // Rpc
+
+            #region InvokeAsync
+
+            // Client provides handler for server's call of method ReceiveMessage
+            hubClient.Connection.On("ReceiveMessage", (string s0, string s1) => logger.LogInformation($"ReceiveMessage: {s0} {s1}"));
+
+            // Client calls server's method ProcessDto
+            var jarr = (JArray)await hubClient.InvokeAsync("ProcessMessage",
+            new[]
+            {
+                new Message { ClientId = ".NETCoreClient", Data = 91, Args = new Arg1[]
+                    {
+                        new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
+                        new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
+                    }
+                },
+                new Message { ClientId = ".NETCoreClient", Data = 92, Args = new Arg1[]
+                    {
+                        new() { Id = "0", Arg2Props = new() { new() { Id = "0.0" }, new() { Id = "0.1" }, } },
+                        new() { Id = "1", Arg2Props = new() { new() { Id = "1.0" }, new() { Id = "1.1" }, } },
+                    }
+                },
+            });
+
+            #endregion // InvokeAsync
+
+            #region Streaming
+
+            // Client subscribes for stream of Message objects providing appropriate handler
+            hubClient.SubscribeAsync<Message>(arg => logger.LogInformation($"Stream: {arg}"));
+
+            #endregion Streaming
+
+            Console.WriteLine("Press any key to cancel...");
+            Console.ReadKey();
+
+            hubClient.Cancel();
+            Console.WriteLine("Press any key to quit...");
+            Console.ReadKey();
+        }
+
+        static async Task<long> TimeWatch(Func<string, string, object[], Task<object>> func, string interfaceName, string methodName, params object[] args)
+        {
+            Stopwatch sw = new();
+            sw.Start();
+            var result = await func(interfaceName, methodName, args);
+            sw.Stop();
+            return sw.Elapsed.Ticks;
+        }
+
+        static async Task<long> TimeWatch(Action<string, string, object[]> action, string interfaceName, string methodName, params object[] args)
+        {
+            Stopwatch sw = new();
+            sw.Start();
+            action(interfaceName, methodName, args);
+            sw.Stop();
+            return sw.Elapsed.Ticks;
         }
     }
 }

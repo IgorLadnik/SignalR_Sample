@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace SignalRBaseHubServerLib
 {
-    public class StreamingHub<T> : Hub, ISetEvent
+    public class RpcAndStreamingHub<T> : Hub, ISetEvent
     {
         #region Inner Descriptor classes
 
@@ -60,10 +60,10 @@ namespace SignalRBaseHubServerLib
 
         #region Ctor
 
-        protected StreamingHub(ILoggerFactory loggerFactory, StreamingDataProvider<T> streamingDataProvider)
+        protected RpcAndStreamingHub(ILoggerFactory loggerFactory, StreamingDataProvider<T> streamingDataProvider)
         {
             _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger<StreamingHub<T>>();
+            _logger = loggerFactory.CreateLogger<RpcAndStreamingHub<T>>();
             IsValid = true;
             streamingDataProvider.Add(this);
             _streamingDataProvider = streamingDataProvider;

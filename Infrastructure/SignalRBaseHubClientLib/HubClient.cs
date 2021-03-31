@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Logging;
 using DtoLib;
 
 namespace SignalRBaseHubClientLib
@@ -17,14 +18,20 @@ namespace SignalRBaseHubClientLib
 
         public HubConnection Connection { get; protected set; }
         protected CancellationTokenSource _cts = new();
+        protected ILogger _logger;
 
         private Dictionary<string, Type> _dctType = new();
+        
+        #region Ctor
 
-        public HubClient(string url, string cleintId = null)
+        public HubClient(string url, ILoggerFactory loggerFactory, string clientId = null)
         {
+            _logger = loggerFactory.CreateLogger<HubClient>();
             Url = url;
-            ClientId = string.IsNullOrWhiteSpace(cleintId) ? $"{Guid.NewGuid()}" : cleintId;
+            ClientId = string.IsNullOrWhiteSpace(clientId) ? $"{Guid.NewGuid()}" : clientId;
         }
+
+        #endregion // Ctor
 
         #region Type manipulations
 
@@ -88,17 +95,21 @@ namespace SignalRBaseHubClientLib
                     if (i < numOfAttempts - 1)
                         await Task.Delay(numOfAttempts);
                     else
-                        throw new Exception($"Hub connection on \"{Url}\" had failed. ", e);
+                    {
+                        var errMessage = $"Hub connection on '{Url}' had failed. ";
+                        _logger.LogError(errMessage, e);
+                        throw new Exception(errMessage, e);
+                    }
                 }
             }
 
             return null;
         }
 
-        public async Task<bool> SubscribeAsync<T>(Action<T> callback)
+        public async void SubscribeAsync<T>(Action<T> callback)
         {
             if (Connection == null || _cts.Token.IsCancellationRequested || callback == null)
-                return false;
+                return;
 
             try
             {
@@ -112,27 +123,29 @@ namespace SignalRBaseHubClientLib
                         }
                         catch (Exception e)
                         {
-                            throw new Exception($"Hub \"{Url}\" Subscribe(): callback had failed. ", e);
+                            var errMessage = $"Hub '{Url}' Subscribe(): callback had failed. ";
+                            _logger.LogError(errMessage, e);
+                            throw new Exception(errMessage, e);
                         }
                     }
 
-                return true;
+                //return true;
             }
             catch (OperationCanceledException)
             {
-                return false;
+                _logger.LogInformation($"Hub '{Url}': cancellation");
             }
         }
 
         #endregion // StartConnection, Subscribe
 
-        #region Invoke, Rpc
+        #region Rpc, Invoke 
 
         public Task<object> RpcAsync(string interfaceName, string methodName, params object[] args) =>
             RpcAsync(false, interfaceName, methodName, args);
 
-        public Task RpcOneWay(string interfaceName, string methodName, params object[] args) =>
-            RpcAsync(true, interfaceName, methodName, args);
+        public async void RpcOneWay(string interfaceName, string methodName, params object[] args) =>
+            await RpcAsync(true, interfaceName, methodName, args);
 
         private async Task<object> RpcAsync(bool isOneWay, string interfaceName, string methodName, object[] args)
         {
@@ -156,7 +169,9 @@ namespace SignalRBaseHubClientLib
             }
             catch (Exception e)
             {
-                throw new Exception($"Hub\"{Url}\" InvokeAsync() of method \"{methodName}()\" had failed. ", e);
+                var errMessage = $"Hub '{Url}' InvokeAsync() of method '{methodName}()' had failed. ";
+                _logger.LogError(errMessage, e);
+                throw new Exception(errMessage, e);
             }
         }
 
@@ -167,24 +182,31 @@ namespace SignalRBaseHubClientLib
 
             try
             {
-                var result = await Connection.InvokeAsync<object>(methodName, args, _cts.Token);
-                return result;
+                return await Connection.InvokeAsync<object>(methodName, args, _cts.Token);
             }
             catch (Exception e)
             {
-                throw new Exception($"Hub\"{Url}\" InvokeAsync() of method \"{methodName}()\" had failed. ", e);
+                var errMessage = $"Hub '{Url}' InvokeAsync() of method '{methodName}()' had failed. ";
+                _logger.LogError(errMessage, e);
+                throw new Exception(errMessage, e);
             }
         }
 
-        #endregion // Invoke, Rpc
+        #endregion // Rpc, Invoke
 
         #region Cancel, Dispose
 
-        public void Cancel() => 
+        public void Cancel() 
+        {
+            _logger.LogInformation($"Hub '{Url}': 'Cancel()' is called");
             _cts.Cancel();
+        }
 
-        public void Dispose() => 
+        public void Dispose() 
+        {
+            _logger.LogInformation($"Hub '{Url}': 'Dispose()' is called");
             Connection.DisposeAsync().Wait();
+        }
 
         #endregion // Cancel, Dispose
     }

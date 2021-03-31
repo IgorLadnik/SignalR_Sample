@@ -1,14 +1,10 @@
-﻿using RemoteInterfaces;
-
-namespace DtoLib
+﻿namespace RemoteInterfaces
 {
-    public class Dto
+    public class Message
     {
         public string ClientId { get; set; }
 
         public string Id { get; set; }
-
-        public DtoStatus Status { get; set; }
 
         public object Payload { get; set; }
 
