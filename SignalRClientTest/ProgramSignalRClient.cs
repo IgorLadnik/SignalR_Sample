@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Threading;
-using System.Text;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
