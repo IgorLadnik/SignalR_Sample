@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsyncAutoResetEventLib", "I
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalRBaseHubClientLib", "Infrastructure\SignalRBaseHubClientLib\SignalRBaseHubClientLib.csproj", "{EE38515E-B18A-4046-90DD-B9069E1152CB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalRClientTest", "SignalRClientTest\SignalRClientTest.csproj", "{4BC2751C-1554-45E4-8CE8-63E74036E1D1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CEBB73E7-C5FE-4EEB-BB0D-CDD8CA8EAC22}"
 	ProjectSection(SolutionItems) = preProject
 		Read_Me.txt = Read_Me.txt
@@ -33,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DtoLib", "Infrastructure\Dt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageProviderLib", "MessageProviderLib\MessageProviderLib.csproj", "{AC98F800-C920-47DF-B1A6-78ECB61C7188}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalRClient", "SignalRClient\SignalRClient.csproj", "{7ED14F49-FB3F-4E43-8B97-E9AFEAF54405}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,10 +47,6 @@ Global
 		{EE38515E-B18A-4046-90DD-B9069E1152CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE38515E-B18A-4046-90DD-B9069E1152CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE38515E-B18A-4046-90DD-B9069E1152CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4BC2751C-1554-45E4-8CE8-63E74036E1D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BC2751C-1554-45E4-8CE8-63E74036E1D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BC2751C-1554-45E4-8CE8-63E74036E1D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BC2751C-1554-45E4-8CE8-63E74036E1D1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6A081747-6E93-46A5-9E0A-E46E89D6E9BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A081747-6E93-46A5-9E0A-E46E89D6E9BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A081747-6E93-46A5-9E0A-E46E89D6E9BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -75,6 +71,10 @@ Global
 		{AC98F800-C920-47DF-B1A6-78ECB61C7188}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC98F800-C920-47DF-B1A6-78ECB61C7188}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC98F800-C920-47DF-B1A6-78ECB61C7188}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7ED14F49-FB3F-4E43-8B97-E9AFEAF54405}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7ED14F49-FB3F-4E43-8B97-E9AFEAF54405}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7ED14F49-FB3F-4E43-8B97-E9AFEAF54405}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7ED14F49-FB3F-4E43-8B97-E9AFEAF54405}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

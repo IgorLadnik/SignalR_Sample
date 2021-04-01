@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 using SignalRBaseHubClientLib;
 using RemoteInterfaces;
 
-namespace SignalRClientTest
+namespace SignalRClient
 {
     class ProgramSignalRClient
     {
