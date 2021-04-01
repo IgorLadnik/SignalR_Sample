@@ -33,7 +33,7 @@
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="mkdir &quot;$(TargetDir)Certs&quot;&#xD;&#xA;copy &quot;$(SolutionDir)Certs\server.pfx&quot; &quot;$(TargetDir)Certs\*&quot;&#xD;&#xA;mkdir &quot;$(ProjecttDir)Certs&quot;&#xD;&#xA;copy &quot;$(SolutionDir)Certs\server.pfx&quot; &quot;$(ProjectDir)Certs\*&quot;&#xD;&#xA;" />
+    <Exec Command="if not exist &quot;$(TargetDir)Certs&quot; mkdir &quot;$(TargetDir)Certs&quot;&#xD;&#xA;xcopy &quot;$(SolutionDir)Certs\server.pfx&quot; &quot;$(TargetDir)Certs\*&quot; /K /D /H /Y&#xD;&#xA;if not exist  &quot;$(ProjecttDir)Certs&quot; mkdir &quot;$(ProjecttDir)Certs&quot;&#xD;&#xA;xcopy &quot;$(SolutionDir)Certs\server.pfx&quot; &quot;$(ProjectDir)Certs\*&quot; /K /D /H /Y&#xD;&#xA;" />
   </Target>
 
 </Project>

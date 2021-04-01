@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if not exist &quot;$(TargetDir)Certs&quot; mkdir &quot;$(TargetDir)Certs&quot;&#xD;&#xA;xcopy &quot;$(SolutionDir)Certs\certificate.crt&quot; &quot;$(TargetDir)Certs\*&quot; /K /D /H /Y&#xD;&#xA;if not exist  &quot;$(ProjecttDir)Certs&quot; mkdir &quot;$(ProjecttDir)Certs&quot;&#xD;&#xA;xcopy &quot;$(SolutionDir)Certs\certificate.crt&quot; &quot;$(ProjectDir)Certs\*&quot; /K /D /H /Y&#xD;&#xA;&#xD;&#xA;" />
+    <Exec Command="if not exist &quot;$(TargetDir)Certs&quot; mkdir &quot;$(TargetDir)Certs&quot;&#xD;&#xA;xcopy &quot;$(SolutionDir)Certs\certificate.crt&quot; &quot;$(TargetDir)Certs\*&quot; /K /D /H /Y&#xD;&#xA;if not exist  &quot;$(ProjecttDir)Certs&quot; mkdir &quot;$(ProjecttDir)Certs&quot;&#xD;&#xA;xcopy &quot;$(SolutionDir)Certs\certificate.crt&quot; &quot;$(ProjectDir)Certs\*&quot; /K /D /H /Y&#xD;&#xA;" />
   </Target>
 
 </Project>
